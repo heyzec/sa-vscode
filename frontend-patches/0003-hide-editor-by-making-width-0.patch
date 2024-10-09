@@ -1,0 +1,25 @@
+From 0606bc74cffcde42461194ab50c55d97d6f90818 Mon Sep 17 00:00:00 2001
+From: heyzec <61238538+heyzec@users.noreply.github.com>
+Date: Wed, 9 Oct 2024 14:11:32 +0800
+Subject: [PATCH 3/3] hide editor by making width 0%
+
+---
+ src/commons/workspace/Workspace.tsx | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/commons/workspace/Workspace.tsx b/src/commons/workspace/Workspace.tsx
+index dc84c62b..d3df27b6 100644
+--- a/src/commons/workspace/Workspace.tsx
++++ b/src/commons/workspace/Workspace.tsx
+@@ -96,7 +96,7 @@ const Workspace: React.FC<WorkspaceProps> = props => {
+       minWidth: 0,
+       onResize: toggleEditorDividerDisplay,
+       ref: leftParentResizable,
+-      defaultSize: { width: '50%', height: '100%' },
++      defaultSize: { width: '0%', height: '100%' },
+       as: undefined as any // re-resizable bug - wrong typedef
+     } as ResizableProps;
+   };
+-- 
+2.45.1
+

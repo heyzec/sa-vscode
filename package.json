@@ -15,8 +15,8 @@
         "title": "Source Academy: Select Source chapter"
       },
       {
-        "command": "sa-vscode.stepper",
-        "title": "Source Academy: Run the current file through the Stepper"
+        "command": "sa-vscode.show-panel",
+        "title": "Source Academy: Show the Source Academy panel"
       }
     ]
   },

@@ -1,0 +1,27 @@
+From 906d8662feeb9fb5ff30b7078531b51e0a952d61 Mon Sep 17 00:00:00 2001
+From: heyzec <61238538+heyzec@users.noreply.github.com>
+Date: Wed, 9 Oct 2024 14:06:29 +0800
+Subject: [PATCH 2/3] filter the origin message
+
+---
+ src/index.tsx | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/index.tsx b/src/index.tsx
+index 9a612caa..e19927eb 100644
+--- a/src/index.tsx
++++ b/src/index.tsx
+@@ -16,6 +16,10 @@ import ApplicationWrapper from './commons/application/ApplicationWrapper';
+ import { createInBrowserFileSystem } from './pages/fileSystem/createInBrowserFileSystem';
+ 
+ window.addEventListener('message', (event) => {
++  // Only accept messages from the vscode webview
++  if (!event.origin.startsWith('vscode-webview://')) {
++    return;
++  }
+   const elements = document.getElementsByClassName('react-ace');
+   if (elements.length === 0) {
+     return;
+-- 
+2.45.1
+
