@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
-import { MessageType, TextMessage } from "../utils/messages";
-import { LANGUAGES } from "../utils/languages";
+import { MessageType, TextMessage } from "../../utils/messages";
+import { LANGUAGES } from "../../utils/languages";
+import { fakeCreateElement, fakeFragment } from "../../FakeReact";
 
 export async function showPanel(context: vscode.ExtensionContext) {
   let language: string | undefined = context.workspaceState.get("language");
@@ -22,6 +23,7 @@ export async function showPanel(context: vscode.ExtensionContext) {
       type: MessageType.TextMessage,
       code: text,
     };
+    handleTextUpdatedMessage(message);
     panel.webview.postMessage(message);
   }
 
@@ -58,6 +60,20 @@ function getNonce(): string {
   return text;
 }
 
+const FRONTEND_ELEMENT_ID = "frontend";
+
+export function handleTextUpdatedMessage(message: TextMessage) {
+  const iframe: HTMLIFrameElement = document.getElementById(
+    FRONTEND_ELEMENT_ID,
+  ) as HTMLIFrameElement;
+  const contentWindow = iframe.contentWindow;
+  if (!contentWindow) {
+    return;
+  }
+  // TODO: Don't use '*'
+  contentWindow.postMessage(message.code, "*");
+}
+
 function getWebviewContent(
   context: vscode.ExtensionContext,
   panel: vscode.WebviewPanel,
@@ -77,9 +93,20 @@ function getWebviewContent(
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Cat Coding</title>
     </head>
-    <body>
-      <div id="root"></div>
-      <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-    </body>
+      ${(
+        <body>
+          <div id="root"></div>
+          <div style="width: 100%; height: calc(100vh - 10px);">
+            <iframe
+              id={FRONTEND_ELEMENT_ID}
+              src="http://localhost:8000/playground"
+              width="100%"
+              height="100%"
+              frameborder="0"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </body>
+      )}
   </html>`;
 }
