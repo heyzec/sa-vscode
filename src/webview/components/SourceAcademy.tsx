@@ -12,6 +12,7 @@ function handleTextUpdatedMessage(message: TextMessage) {
     return;
   }
   // TODO: Don't use '*'
+  console.log("Posting message to frontend");
   contentWindow.postMessage(message.code, "*");
 }
 
@@ -32,25 +33,6 @@ function SourceAcademy() {
     };
   }, []);
 
-  return (
-    <>
-      <div
-        style={{
-          width: "100%",
-          // Account for some unexplainable margin
-          height: "calc(100vh - 10px)",
-        }}
-      >
-        <iframe
-          id={FRONTEND_ELEMENT_ID}
-          src="http://localhost:8000/playground"
-          width="100%"
-          height="100%"
-          frameborder="0"
-          allowfullscreen
-        ></iframe>
-      </div>
-    </>
-  );
+  return <></>;
 }
 export default SourceAcademy;

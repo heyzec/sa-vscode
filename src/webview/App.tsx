@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import SourceAcademy from "./components/SourceAcademy";
 import { MessageType, WebviewStartedMessage } from "../utils/messages";
+import SourceAcademy from "./components/SourceAcademy";
 
 function App() {
   // This function is provided by vscode extension
