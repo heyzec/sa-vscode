@@ -28,7 +28,10 @@
           "description": "URL to the Source Academy frontend"
         },
         "sa-vscode.tsdk": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "default": null,
           "description": "Specifies the folder path containing the tsserver and lib*.d.ts files to use."
         }
