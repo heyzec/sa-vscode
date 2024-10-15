@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "jsx": "react",
+    "jsxFactory": "createElement",
+    "jsxFragmentFactory": "Fragment",
     "module": "Node16",
     "target": "ES2022",
     "outDir": "out",

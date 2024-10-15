@@ -1,7 +1,9 @@
 import * as vscode from "vscode";
 import { MessageType, TextMessage } from "../../utils/messages";
 import { LANGUAGES } from "../../utils/languages";
-import { fakeCreateElement, fakeFragment } from "../../FakeReact";
+import { createElement } from "../../FakeReact";
+
+const FRONTEND_ELEMENT_ID = "frontend";
 
 export async function showPanel(context: vscode.ExtensionContext) {
   let language: string | undefined = context.workspaceState.get("language");
@@ -38,7 +40,6 @@ export async function showPanel(context: vscode.ExtensionContext) {
       enableScripts: true, // Enable scripts in the webview
     },
   );
-  panel.webview.html = getWebviewContent(context, panel);
 
   panel.webview.onDidReceiveMessage(
     (_message) => {
@@ -48,19 +49,26 @@ export async function showPanel(context: vscode.ExtensionContext) {
     undefined,
     context.subscriptions,
   );
-}
 
-function getNonce(): string {
-  let text: string = "";
-  const possible: string =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
+  setWebviewContent(
+    panel,
+    <body>
+      <div id="root"></div>
+      {/* @ts-expect-error */}
+      <div style={"width: 100%; height: calc(100vh - 10px);"}>
+        <iframe
+          id={FRONTEND_ELEMENT_ID}
+          src="http://localhost:8000/playground"
+          width="100%"
+          height="100%"
+          // @ts-expect-error
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </body>,
+  );
 }
-
-const FRONTEND_ELEMENT_ID = "frontend";
 
 export function handleTextUpdatedMessage(message: TextMessage) {
   const iframe: HTMLIFrameElement = document.getElementById(
@@ -74,39 +82,15 @@ export function handleTextUpdatedMessage(message: TextMessage) {
   contentWindow.postMessage(message.code, "*");
 }
 
-function getWebviewContent(
-  context: vscode.ExtensionContext,
-  panel: vscode.WebviewPanel,
-) {
-  // Use a nonce to whitelist which scripts can be run
-  const nonce = getNonce();
-
-  const scriptUri = panel.webview.asWebviewUri(
-    vscode.Uri.joinPath(context.extensionUri, "out", "webview.js"),
-  );
-
-  // <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src *; style-src ${webview.cspSource}; img-src ${webview.cspSource} https:; script-src 'nonce-${nonce}';">
-  return `<!DOCTYPE html>
+function setWebviewContent(panel: vscode.WebviewPanel, bodyHtml: JSX.Element) {
+  const fullhtml = `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Cat Coding</title>
+      <title>${panel.title}</title>
     </head>
-      ${(
-        <body>
-          <div id="root"></div>
-          <div style="width: 100%; height: calc(100vh - 10px);">
-            <iframe
-              id={FRONTEND_ELEMENT_ID}
-              src="http://localhost:8000/playground"
-              width="100%"
-              height="100%"
-              frameborder="0"
-              allowfullscreen
-            ></iframe>
-          </div>
-        </body>
-      )}
+      ${bodyHtml}
   </html>`;
+  panel.webview.html = fullhtml;
 }
