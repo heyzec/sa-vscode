@@ -50,6 +50,16 @@ export class Editor {
     return this.editor.document.getText();
   }
 
+  static getFilePath(assessmentName: string, questionId: number): string {
+    const workspaceFolder = canonicaliseLocation(config.workspaceFolder);
+    const filePath = path.join(
+      workspaceFolder,
+      `${assessmentName}_${questionId}.js`,
+    );
+
+    return filePath;
+  }
+
   // TODO: This method is too loaded, it's not obvious it also shows the editor
   static async create(
     workspaceLocation: VscWorkspaceLocation,
