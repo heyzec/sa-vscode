@@ -119,7 +119,28 @@ export class MessageHandler {
             message.questionId,
             message.prepend,
             message.initialCode,
+            message.breakpoints
           );
+
+          
+          // Remove all breakpoints, then add the one included in the message
+          // Need this to pass typechecks
+          const editor = this.activeEditor
+          if (editor !== null) {
+            vscode.debug.removeBreakpoints(
+              vscode.debug.breakpoints.filter(bp => 
+                bp instanceof vscode.SourceBreakpoint 
+                && bp.location.uri.toString() === editor.uri.toString()
+              )
+            );
+            vscode.debug.addBreakpoints(this.activeEditor.breakpoints.map((s, index) => {
+              if (s === "ace_breakpoint") {
+                return new vscode.SourceBreakpoint(new vscode.Location(vscode.Uri.parse(editor.uri), new vscode.Position(index, 0)), true)
+              }
+            }).filter(x => x !== undefined));
+          }
+
+
           this.activeEditor.uri;
           const info = context.globalState.get("info") ?? {};
           if (this.activeEditor.uri) {
@@ -130,6 +151,7 @@ export class MessageHandler {
             );
             const nPrependLines = getNumPrependLines(message.prepend);
             _.set(info, `["${this.activeEditor.uri}"].prepend`, nPrependLines);
+
             context.globalState.update("info", info);
             client.sendRequest("source/publishInfo", info);
           }
@@ -157,6 +179,7 @@ export class MessageHandler {
             console.log(`Sending message: ${JSON.stringify(message)}`);
             sendToFrontend(this.panel, message);
           });
+
           break;
         case MessageTypeNames.NotifyAssessmentsOverview:
           const { assessmentOverviews, courseId } = message;

@@ -25,6 +25,9 @@ export class Editor {
   assessmentName: string;
   questionId: number;
 
+  // Data for breakpoints
+  breakpoints: string[];
+
   private constructor(
     editor: vscode.TextEditor,
     prepend: string,
@@ -32,6 +35,7 @@ export class Editor {
     workspaceLocation: VscWorkspaceLocation,
     assessmentName: string,
     questionId: number,
+    breakpoints: string[],
   ) {
     this.editor = editor;
     this.prepend = prepend;
@@ -39,6 +43,7 @@ export class Editor {
     this.workspaceLocation = workspaceLocation;
     this.assessmentName = assessmentName;
     this.questionId = questionId;
+    this.breakpoints = breakpoints;
   }
 
   /** For debugging purposes */
@@ -57,6 +62,7 @@ export class Editor {
     questionId: number,
     prepend: string = "",
     initialCode: string = "",
+    breakpoints: string[]
   ): Promise<Editor> {
     const workspaceFolder = canonicaliseLocation(config.workspaceFolder);
     const filePath = path.join(
@@ -113,6 +119,7 @@ export class Editor {
       viewColumn: vscode.ViewColumn.One,
     });
 
+
     // Programmatically set the language
     vscode.languages.setTextDocumentLanguage(editor.document, "source");
 
@@ -131,6 +138,7 @@ export class Editor {
       workspaceLocation,
       assessmentName,
       questionId,
+      breakpoints
     );
 
     // Register callback when contents changed
@@ -146,6 +154,7 @@ export class Editor {
         self.onChangeCallback(self);
       },
     );
+
 
     return self;
   }
