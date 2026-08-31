@@ -3,7 +3,7 @@
  * It simply relays messages between the VSC Extension context and the Frontend iframe context.
  */
 //
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Messages, { MessageType, MessageTypeNames } from "../../utils/messages";
 import { FRONTEND_ELEMENT_ID } from "../../constants";
 
@@ -32,6 +32,7 @@ function initialListener(event: MessageEvent) {
     event.origin === message.frontendOrigin
   ) {
     frontendBaseUrl = event.origin;
+
     relayToExtension(message);
     window.addEventListener("message", messageListener);
     return;
@@ -51,14 +52,6 @@ function messageListener(event: MessageEvent) {
 }
 
 const SourceAcademy: React.FC = () => {
-  useEffect(() => {
-    window.addEventListener("message", initialListener);
-    return () => {
-      window.removeEventListener("message", initialListener);
-      window.removeEventListener("message", messageListener);
-    };
-  }, []);
-
   useEffect(() => {
     // TODO: Hacky way to update mcq panel, standard onClick handlers don't work
     const highlightSelection = (

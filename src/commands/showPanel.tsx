@@ -34,49 +34,58 @@ export async function showPanel(
         retainContextWhenHidden: true,
       },
     );
+    // Get a reference to the active editor (before the focus is switched to our newly created webview)
+    // firstEditor = vscode.window.activeTextEditor!;
 
     messageHandler.panel.webview.onDidReceiveMessage(
       (message: MessageType) => messageHandler.handleMessage(context, message),
       undefined,
       context.subscriptions,
     );
+
+    messageHandler.panel.onDidDispose(() => {
+      console.log("Panel disposed, clearing message handler panel");
+      messageHandler.panel = null;
+    });
+
+    const iframeUrl =
+      altUrl ?? new URL(route ?? "/playground", config.frontendBaseUrl).href;
+
+    setWebviewContent(
+      messageHandler.panel,
+      context,
+      // NOTE: This is not React code, but our FakeReact!
+      <div
+        // Account for some unexplainable margin
+        // @ts-expect-error: Our FakeReact doesn't modify the style attribute
+        style="width: 100%; height: calc(100vh - 10px)"
+      >
+        <iframe
+          id={FRONTEND_ELEMENT_ID}
+          src={iframeUrl}
+          width="100%"
+          height="100%"
+          // @ts-ignore
+          frameborder="0"
+          allowfullscreen
+        ></iframe>
+      </div>,
+    );
+
+    messageHandler.panel.iconPath = SOURCE_ACADEMY_ICON_URI;
   }
-
-  const iframeUrl =
-    altUrl ?? new URL(route ?? "/playground", config.frontendBaseUrl).href;
-
-  // equivalent to panel.webview.html = ...
-  setWebviewContent(
-    messageHandler.panel,
-    context,
-    // NOTE: This is not React code, but our FakeReact!
-    <div
-      // Account for some unexplainable margin
-      // @ts-expect-error: Our FakeReact doesn't modify the style attribute
-      style="width: 100%; height: calc(100vh - 10px)"
-    >
-      <iframe
-        id={FRONTEND_ELEMENT_ID}
-        src={iframeUrl}
-        width="100%"
-        height="100%"
-        // @ts-ignore
-        frameborder="0"
-        allowfullscreen
-      ></iframe>
-    </div>,
-  );
-
-  messageHandler.panel.iconPath = SOURCE_ACADEMY_ICON_URI;
 }
 
-export async function sendToFrontendWrapped(message: MessageType) {
-  sendToFrontend(messageHandler.panel, message);
-  // TODO: This returning of status code shouldn't be necessary after refactor
+export function sendToFrontendWrapped(message: MessageType): boolean {
   if (!messageHandler.panel) {
-    console.error("ERROR: panel is not set");
     return false;
   }
-  sendToFrontend(messageHandler.panel, message);
-  return true;
+  try {
+    sendToFrontend(messageHandler.panel, message);
+    return true;
+  } catch (err) {
+    console.error("Failed to send message to webview", err);
+    messageHandler.panel = null;
+    return false;
+  }
 }

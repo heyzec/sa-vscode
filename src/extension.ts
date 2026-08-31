@@ -14,22 +14,51 @@ export let client: LanguageClient;
 
 export let SOURCE_ACADEMY_ICON_URI: vscode.Uri;
 
+// Shared output channel for logging diagnostic messages
+let outputChannel: vscode.OutputChannel;
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  // Initialise output channel early so all parts can use it
+  outputChannel = vscode.window.createOutputChannel("Source Academy");
+  context.subscriptions.push(outputChannel);
+
+  // Validate user-provided settings up-front
+  try {
+    new URL(config.frontendBaseUrl);
+  } catch {
+    vscode.window.showErrorMessage(
+      "Source Academy: Invalid Frontend URL in settings (source-academy.frontendBaseUrl).",
+    );
+  }
   setupTreeView(context);
   registerAllCommands(context);
 
   context.subscriptions.push(setupStatusBar(context));
 
-  client = activateLspClient(context);
+  try {
+    client = activateLspClient(context);
+  } catch (e: any) {
+    vscode.window.showErrorMessage(
+      "Source Academy: Failed to start language server – " + (e?.message ?? e),
+    );
+    outputChannel.appendLine(String(e?.stack ?? e));
+    throw e; // rethrow so VS Code knows activation failed
+  }
 
   // const info = {
   //   "file:///home/heyzec/.sourceacademy/playground_1.js": { chapter: 4 },
   // };
   const info = context.globalState.get("info") ?? {};
 
-  client.sendRequest("source/publishInfo", info);
+  try {
+    client.sendRequest("source/publishInfo", info);
+  } catch (e: any) {
+    outputChannel.appendLine(
+      "Error sending initial info to language server: " + String(e),
+    );
+  }
 
   SOURCE_ACADEMY_ICON_URI = vscode.Uri.joinPath(
     context.extensionUri,
